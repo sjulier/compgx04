@@ -27,9 +27,9 @@ classdef LaserSensor2DSLAMSystem < answers.GPSLocalizationSystem
             % unfortunately, the mapping system only works in 2D.
             % Therefore, we have to convert from 3D to 2D to get the range
             % correct.
-            z = [z(1)*cos(z(3));z(2)];
             S = [1 0 -z(1)*sin(z(3));0 1 0];
             R = S * R * S';                       
+            z = [z(1)*cos(z(3));z(2)];
 
             % This is the way to find a landmark if we have it registered
             % aready
