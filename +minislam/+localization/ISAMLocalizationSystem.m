@@ -118,15 +118,13 @@ classdef ISAMLocalizationSystem < minislam.localization.VehicleLocalizationSyste
                 this.newValues = gtsam.Values();
                 this.mergeRequiredIntoISAMRequired = false;
             catch thrownException
+                disp(thrownException.message);
                 keyboard
             end
             
             % We always compute the latest results to update the vehicle
             % pose
             this.lastOptimizedValues = this.isam.calculateEstimate();
-            
-            %factorGraph = this.isam.getFactorsUnsafe();            
-            %this.lastOptimizedMarginals =  gtsam.Marginals(factorGraph, this.lastOptimizedValues);
 
             % Set the current pose to the optimised value
             this.currentVehiclePose = this.lastOptimizedValues.atPose2(this.currentVehiclePoseKey);
@@ -136,7 +134,6 @@ classdef ISAMLocalizationSystem < minislam.localization.VehicleLocalizationSyste
             
             x = this.lastOptimizedValues.atPose2(this.currentVehiclePoseKey);
 
-            
             try
                 P = this.isam.marginalCovariance(this.currentVehiclePoseKey);
                 % The returned covariance appears to be rotated in a
@@ -151,6 +148,7 @@ classdef ISAMLocalizationSystem < minislam.localization.VehicleLocalizationSyste
                 R = [cos(theta) -sin(theta) 0;sin(theta) cos(theta) 0;0 0 1];
                 P = R * P * R';
             catch thrownException
+                disp(thrownException.message);
                 keyboard
             end
         end
@@ -264,10 +262,18 @@ classdef ISAMLocalizationSystem < minislam.localization.VehicleLocalizationSyste
             % Create the new vehicle pose key, which corresponds to now
             newVehiclePoseKey = this.getNewVehiclePoseKey();
                         
-            % If no odometry was set, register the newly created pose and
-            % return
+            % If no odometry was set, and we are at the first time step,
+            % create a very weak odometry edge. This ensurs the system is
+            % observable.
             if (isempty(this.u) == true)
-                this.addNewValue(newVehiclePoseKey, this.currentVehiclePose);
+                if (this.stepNumber == 1)
+                    weakPoseNoise = gtsam.noiseModel.Gaussian.Covariance(diag([2 2 4*pi/180].^2));            
+                    weakOdometryFactor = gtsam.BetweenFactorPose2(this.currentVehiclePoseKey, ...
+                        newVehiclePoseKey, gtsam.Pose2(), weakPoseNoise);
+                    this.addNewFactorAndValue(newVehiclePoseKey, weakOdometryFactor, this.currentVehiclePose);
+                else
+                    this.addNewValue(newVehiclePoseKey, this.currentVehiclePose);
+                end
                 this.currentVehiclePoseKey = newVehiclePoseKey;
                 return
             end
