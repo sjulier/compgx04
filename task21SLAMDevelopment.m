@@ -1,4 +1,4 @@
-% This script runs the odometry
+% This script can be used to develop your SLAM system
 
 % Configure to disable unneed sensors
 parameters = minislam.event_generators.simulation.Parameters();
