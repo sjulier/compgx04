@@ -18,7 +18,7 @@ parameters.gpsMeasurementPeriod = 1;
 eventGenerator = minislam.event_generators.simulation.Simulator(parameters, 'task3');
 
 % Run GTSAM
-gtsamSLAMSystem = model_answers.gtsam.LaserSensor2DSLAMSystem();
+gtsamSLAMSystem = answers.gtsam.LaserSensor2DSLAMSystem();
 gtsamResults = minislam.mainLoop(eventGenerator, gtsamSLAMSystem);
 
 % Plot optimisation times
